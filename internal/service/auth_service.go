@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"money-manager/internal/config"
 	"money-manager/internal/domain"
@@ -50,7 +51,15 @@ func (s *AuthService) Register(req dto.RegisterRequest) error {
 		IsActive:     true,
 	}
 
-	return s.repo.Create(user)
+	err = s.repo.Create(user)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return ErrEmailExists
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (s *AuthService) Login(req dto.LoginRequest) (*dto.AuthResponse, error) {

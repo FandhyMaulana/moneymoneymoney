@@ -19,9 +19,21 @@ func LoadConfig() *Config {
 		log.Println("No .env file found")
 	}
 
-	return &Config{
+	cfg := &Config{
 		Port:      os.Getenv("PORT"),
 		DB_DSN:    os.Getenv("DB_DSN"),
 		JWTSecret: os.Getenv("JWT_SECRET"),
 	}
+
+	if cfg.Port == "" {
+		cfg.Port = "8080"
+	}
+	if cfg.DB_DSN == "" {
+		log.Fatal("DB_DSN environment variable is required")
+	}
+	if cfg.JWTSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
+	return cfg
 }
