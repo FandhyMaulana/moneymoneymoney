@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"errors"
 	"money-manager/internal/dto"
 	"money-manager/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type WalletHandler struct {
@@ -27,7 +29,7 @@ func (h *WalletHandler) CreateWallet(c *gin.Context) {
 
 	res, err := h.service.CreateWallet(userID, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create wallet"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -39,7 +41,7 @@ func (h *WalletHandler) GetWallets(c *gin.Context) {
 
 	res, err := h.service.GetUserWallets(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get wallets"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -51,7 +53,11 @@ func (h *WalletHandler) DeleteWallet(c *gin.Context) {
 	walletID := c.Param("id")
 
 	if err := h.service.DeleteWallet(walletID, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete wallet"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "wallet not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
