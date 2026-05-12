@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"errors"
 	"money-manager/internal/dto"
 	"money-manager/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CategoryHandler struct {
@@ -27,7 +29,7 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 
 	res, err := h.service.CreateCategory(userID, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create category"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -39,7 +41,7 @@ func (h *CategoryHandler) GetCategories(c *gin.Context) {
 
 	res, err := h.service.GetUserCategories(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get categories"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -51,7 +53,11 @@ func (h *CategoryHandler) DeleteCategory(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := h.service.DeleteCategory(id, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete category"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "category not found or cannot be deleted"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
