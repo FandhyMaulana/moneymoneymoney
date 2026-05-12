@@ -23,12 +23,15 @@ func main() {
 
 	// 3. Initialize Repository
 	userRepo := repository.NewUserRepository(db)
+	walletRepo := repository.NewWalletRepository(db)
 
 	// 4. Initialize Service
 	authService := service.NewAuthService(userRepo, cfg)
+	walletService := service.NewWalletService(walletRepo)
 
 	// 5. Initialize Handler
 	authHandler := handler.NewAuthHandler(authService)
+	walletHandler := handler.NewWalletHandler(walletService)
 
 	// 6. Setup Router
 	r := gin.Default()
@@ -45,15 +48,21 @@ func main() {
 		authGroup.POST("/login", authHandler.Login)
 	}
 
-	// Protected Routes (Example)
-	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	// Protected Routes
+	api := r.Group("/api")
+	api.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	{
-		protected.GET("/me", func(c *gin.Context) {
+		api.GET("/me", func(c *gin.Context) {
 			userID := c.MustGet("user_id").(string)
 			c.JSON(200, gin.H{"user_id": userID})
 		})
+
+		// Wallet Routes
+		api.POST("/wallets", walletHandler.CreateWallet)
+		api.GET("/wallets", walletHandler.GetWallets)
+		api.DELETE("/wallets/:id", walletHandler.DeleteWallet)
 	}
+
 
 	log.Println("Server running on port", cfg.Port)
 	r.Run(":" + cfg.Port)
