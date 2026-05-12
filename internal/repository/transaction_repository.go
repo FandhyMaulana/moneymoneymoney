@@ -34,5 +34,12 @@ func (r *TransactionRepository) GetByID(id string, userID string) (*domain.Trans
 }
 
 func (r *TransactionRepository) Delete(id string, userID string) error {
-	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&domain.Transaction{}).Error
+	result := r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&domain.Transaction{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

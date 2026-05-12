@@ -56,6 +56,9 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 		if req.SourceWalletID == nil || req.DestinationWalletID == nil {
 			return nil, errors.New("both source and destination wallets are required for transfer")
 		}
+		if *req.SourceWalletID == *req.DestinationWalletID {
+			return nil, errors.New("source and destination wallets must be different")
+		}
 		_, errS := s.walletRepo.GetByID(*req.SourceWalletID, userID)
 		_, errD := s.walletRepo.GetByID(*req.DestinationWalletID, userID)
 		if errS != nil || errD != nil {
