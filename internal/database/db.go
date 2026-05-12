@@ -42,4 +42,3 @@ func Migrate(db *gorm.DB) {
 
 	log.Println("Database migrated")
 }
-
