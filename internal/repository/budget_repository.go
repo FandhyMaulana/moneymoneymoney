@@ -16,6 +16,10 @@ func NewBudgetRepository(db *gorm.DB) *BudgetRepository {
 	return &BudgetRepository{db: db}
 }
 
+func (r *BudgetRepository) WithTx(tx *gorm.DB) *BudgetRepository {
+	return &BudgetRepository{db: tx}
+}
+
 func (r *BudgetRepository) Upsert(budget *domain.Budget) error {
 	now := time.Now()
 	budget.UpdatedAt = &now

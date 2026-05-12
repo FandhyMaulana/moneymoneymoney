@@ -14,6 +14,10 @@ func NewTransactionRepository(db *gorm.DB) *TransactionRepository {
 	return &TransactionRepository{db: db}
 }
 
+func (r *TransactionRepository) WithTx(tx *gorm.DB) *TransactionRepository {
+	return &TransactionRepository{db: tx}
+}
+
 func (r *TransactionRepository) Create(tx *domain.Transaction) error {
 	return r.db.Create(tx).Error
 }

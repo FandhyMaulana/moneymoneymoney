@@ -14,6 +14,10 @@ func NewWalletRepository(db *gorm.DB) *WalletRepository {
 	return &WalletRepository{db: db}
 }
 
+func (r *WalletRepository) WithTx(tx *gorm.DB) *WalletRepository {
+	return &WalletRepository{db: tx}
+}
+
 func (r *WalletRepository) Create(wallet *domain.Wallet) error {
 	return r.db.Create(wallet).Error
 }
