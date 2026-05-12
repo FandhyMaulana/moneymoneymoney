@@ -27,7 +27,11 @@ func (h *BudgetHandler) SetBudget(c *gin.Context) {
 
 	res, err := h.service.SetBudget(userID, req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err.Error() == "invalid category" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -39,7 +43,7 @@ func (h *BudgetHandler) GetBudgets(c *gin.Context) {
 
 	res, err := h.service.GetBudgets(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get budgets"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
