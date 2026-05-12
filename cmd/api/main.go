@@ -25,16 +25,19 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	walletRepo := repository.NewWalletRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
 
 	// 4. Initialize Service
 	authService := service.NewAuthService(userRepo, cfg)
 	walletService := service.NewWalletService(walletRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
+	transactionService := service.NewTransactionService(transactionRepo, walletRepo, categoryRepo)
 
 	// 5. Initialize Handler
 	authHandler := handler.NewAuthHandler(authService)
 	walletHandler := handler.NewWalletHandler(walletService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
+	transactionHandler := handler.NewTransactionHandler(transactionService)
 
 	// 6. Setup Router
 	r := gin.Default()
@@ -69,7 +72,12 @@ func main() {
 		api.POST("/categories", categoryHandler.CreateCategory)
 		api.GET("/categories", categoryHandler.GetCategories)
 		api.DELETE("/categories/:id", categoryHandler.DeleteCategory)
+
+		// Transaction Routes
+		api.POST("/transactions", transactionHandler.CreateTransaction)
+		api.GET("/transactions", transactionHandler.GetTransactions)
 	}
+
 
 
 
