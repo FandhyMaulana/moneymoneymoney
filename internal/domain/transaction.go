@@ -6,6 +6,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	TransactionTypeIncome   = "income"
+	TransactionTypeExpense  = "expense"
+	TransactionTypeTransfer = "transfer"
+)
+
 type Transaction struct {
 	ID                  string         `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	UserID              string         `gorm:"type:uuid;not null;index" json:"user_id"`
