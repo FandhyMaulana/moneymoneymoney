@@ -26,18 +26,21 @@ func main() {
 	walletRepo := repository.NewWalletRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
 	transactionRepo := repository.NewTransactionRepository(db)
+	budgetRepo := repository.NewBudgetRepository(db)
 
 	// 4. Initialize Service
 	authService := service.NewAuthService(userRepo, cfg)
 	walletService := service.NewWalletService(walletRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
 	transactionService := service.NewTransactionService(transactionRepo, walletRepo, categoryRepo)
+	budgetService := service.NewBudgetService(budgetRepo, categoryRepo)
 
 	// 5. Initialize Handler
 	authHandler := handler.NewAuthHandler(authService)
 	walletHandler := handler.NewWalletHandler(walletService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
+	budgetHandler := handler.NewBudgetHandler(budgetService)
 
 	// 6. Setup Router
 	r := gin.Default()
@@ -76,12 +79,12 @@ func main() {
 		// Transaction Routes
 		api.POST("/transactions", transactionHandler.CreateTransaction)
 		api.GET("/transactions", transactionHandler.GetTransactions)
+
+		// Budget Routes
+		api.POST("/budgets", budgetHandler.SetBudget)
+		api.GET("/budgets", budgetHandler.GetBudgets)
 	}
-
-
-
 
 	log.Println("Server running on port", cfg.Port)
 	r.Run(":" + cfg.Port)
 }
-
