@@ -27,6 +27,14 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	res, err := h.service.CreateTransaction(userID, req)
 	if err != nil {
+		// Specific error mapping for validation
+		if err.Error() == "invalid category: not found" ||
+			err.Error() == "invalid destination wallet: not found" ||
+			err.Error() == "invalid source wallet: not found" ||
+			err.Error() == "invalid source or destination wallet: not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -39,7 +47,7 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 
 	res, err := h.service.GetUserTransactions(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get transactions"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 

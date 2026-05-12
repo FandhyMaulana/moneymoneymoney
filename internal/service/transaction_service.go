@@ -5,20 +5,25 @@ import (
 	"money-manager/internal/domain"
 	"money-manager/internal/dto"
 	"money-manager/internal/repository"
+
+	"gorm.io/gorm"
 )
 
 type TransactionService struct {
+	db           *gorm.DB
 	repo         *repository.TransactionRepository
 	walletRepo   *repository.WalletRepository
 	categoryRepo *repository.CategoryRepository
 }
 
 func NewTransactionService(
+	db *gorm.DB,
 	repo *repository.TransactionRepository,
 	walletRepo *repository.WalletRepository,
 	categoryRepo *repository.CategoryRepository,
 ) *TransactionService {
 	return &TransactionService{
+		db:           db,
 		repo:         repo,
 		walletRepo:   walletRepo,
 		categoryRepo: categoryRepo,
@@ -30,7 +35,10 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 	if req.CategoryID != nil {
 		_, err := s.categoryRepo.GetByID(*req.CategoryID, userID)
 		if err != nil {
-			return nil, errors.New("invalid category")
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, errors.New("invalid category: not found")
+			}
+			return nil, err
 		}
 	}
 
@@ -42,7 +50,10 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 		}
 		_, err := s.walletRepo.GetByID(*req.DestinationWalletID, userID)
 		if err != nil {
-			return nil, errors.New("invalid destination wallet")
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, errors.New("invalid destination wallet: not found")
+			}
+			return nil, err
 		}
 	case "expense":
 		if req.SourceWalletID == nil {
@@ -50,7 +61,10 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 		}
 		_, err := s.walletRepo.GetByID(*req.SourceWalletID, userID)
 		if err != nil {
-			return nil, errors.New("invalid source wallet")
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, errors.New("invalid source wallet: not found")
+			}
+			return nil, err
 		}
 	case "transfer":
 		if req.SourceWalletID == nil || req.DestinationWalletID == nil {
@@ -62,41 +76,55 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 		_, errS := s.walletRepo.GetByID(*req.SourceWalletID, userID)
 		_, errD := s.walletRepo.GetByID(*req.DestinationWalletID, userID)
 		if errS != nil || errD != nil {
-			return nil, errors.New("invalid source or destination wallet")
+			return nil, errors.New("invalid source or destination wallet: not found")
 		}
 	}
 
-	// 3. Create Transaction record
-	tx := &domain.Transaction{
-		UserID:              userID,
-		Type:                req.Type,
-		Amount:              req.Amount,
-		CategoryID:          req.CategoryID,
-		SourceWalletID:      req.SourceWalletID,
-		DestinationWalletID: req.DestinationWalletID,
-		ReferenceNo:         req.ReferenceNo,
-		Note:                req.Note,
-		AttachmentURL:       req.AttachmentURL,
-		TransactionDate:     req.TransactionDate,
-	}
+	// 3. Create Transaction record with atomicity if needed (though repo.Create is a single op)
+	// For future scalability (e.g., updating wallet balance), we use a transaction block
+	var txResponse *dto.TransactionResponse
+	err := s.db.Transaction(func(dbTx *gorm.DB) error {
+		// Note: Repositories should ideally take dbTx, but for now we use domain logic
+		// In a real best-practice, we'd pass dbTx to repository methods
 
-	if err := s.repo.Create(tx); err != nil {
+		newTx := &domain.Transaction{
+			UserID:              userID,
+			Type:                req.Type,
+			Amount:              req.Amount,
+			CategoryID:          req.CategoryID,
+			SourceWalletID:      req.SourceWalletID,
+			DestinationWalletID: req.DestinationWalletID,
+			ReferenceNo:         req.ReferenceNo,
+			Note:                req.Note,
+			AttachmentURL:       req.AttachmentURL,
+			TransactionDate:     req.TransactionDate,
+		}
+
+		if err := dbTx.Create(newTx).Error; err != nil {
+			return err
+		}
+
+		txResponse = &dto.TransactionResponse{
+			ID:                  newTx.ID,
+			Type:                newTx.Type,
+			Amount:              newTx.Amount,
+			CategoryID:          newTx.CategoryID,
+			SourceWalletID:      newTx.SourceWalletID,
+			DestinationWalletID: newTx.DestinationWalletID,
+			ReferenceNo:         newTx.ReferenceNo,
+			Note:                newTx.Note,
+			AttachmentURL:       newTx.AttachmentURL,
+			TransactionDate:     newTx.TransactionDate,
+			CreatedAt:           newTx.CreatedAt,
+		}
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
-	return &dto.TransactionResponse{
-		ID:                  tx.ID,
-		Type:                tx.Type,
-		Amount:              tx.Amount,
-		CategoryID:          tx.CategoryID,
-		SourceWalletID:      tx.SourceWalletID,
-		DestinationWalletID: tx.DestinationWalletID,
-		ReferenceNo:         tx.ReferenceNo,
-		Note:                tx.Note,
-		AttachmentURL:       tx.AttachmentURL,
-		TransactionDate:     tx.TransactionDate,
-		CreatedAt:           tx.CreatedAt,
-	}, nil
+	return txResponse, nil
 }
 
 func (s *TransactionService) GetUserTransactions(userID string) ([]dto.TransactionResponse, error) {
