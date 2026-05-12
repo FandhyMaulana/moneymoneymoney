@@ -6,6 +6,7 @@ import (
 	"money-manager/internal/config"
 	"money-manager/internal/database"
 	"money-manager/internal/handler"
+	"money-manager/internal/middleware"
 	"money-manager/internal/repository"
 	"money-manager/internal/service"
 
@@ -44,6 +45,17 @@ func main() {
 		authGroup.POST("/login", authHandler.Login)
 	}
 
+	// Protected Routes (Example)
+	protected := r.Group("/api")
+	protected.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	{
+		protected.GET("/me", func(c *gin.Context) {
+			userID := c.MustGet("user_id").(string)
+			c.JSON(200, gin.H{"user_id": userID})
+		})
+	}
+
 	log.Println("Server running on port", cfg.Port)
 	r.Run(":" + cfg.Port)
 }
+
