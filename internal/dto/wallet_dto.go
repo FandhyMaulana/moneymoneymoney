@@ -12,9 +12,10 @@ type UpdateWalletRequest struct {
 }
 
 type WalletResponse struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	IsActive  bool   `json:"is_active"`
-	CreatedAt string `json:"created_at"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Type      string  `json:"type"`
+	Balance   float64 `json:"balance"`
+	IsActive  bool    `json:"is_active"`
+	CreatedAt string  `json:"created_at"`
 }

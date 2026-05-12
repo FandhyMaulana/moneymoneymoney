@@ -17,6 +17,7 @@ type Wallet struct {
 	UserID    string         `gorm:"type:uuid;not null;index" json:"user_id"`
 	Name      string         `gorm:"type:varchar(255);not null" json:"name"`
 	Type      string         `gorm:"type:varchar(50);not null" json:"type"`
+	Balance   float64        `gorm:"type:numeric;default:0;not null" json:"balance"`
 	IsActive  bool           `gorm:"default:true" json:"is_active"`
 	CreatedAt time.Time      `gorm:"not null" json:"created_at"`
 	UpdatedAt *time.Time     `json:"updated_at"`
