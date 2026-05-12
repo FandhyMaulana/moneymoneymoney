@@ -44,7 +44,7 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 
 	// 2. Validate Wallets based on Type
 	switch req.Type {
-	case "income":
+	case domain.TransactionTypeIncome:
 		if req.DestinationWalletID == nil {
 			return nil, errors.New("destination wallet is required for income")
 		}
@@ -55,7 +55,7 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 			}
 			return nil, err
 		}
-	case "expense":
+	case domain.TransactionTypeExpense:
 		if req.SourceWalletID == nil {
 			return nil, errors.New("source wallet is required for expense")
 		}
@@ -66,7 +66,7 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 			}
 			return nil, err
 		}
-	case "transfer":
+	case domain.TransactionTypeTransfer:
 		if req.SourceWalletID == nil || req.DestinationWalletID == nil {
 			return nil, errors.New("both source and destination wallets are required for transfer")
 		}
@@ -80,12 +80,11 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 		}
 	}
 
-	// 3. Create Transaction record with atomicity if needed (though repo.Create is a single op)
-	// For future scalability (e.g., updating wallet balance), we use a transaction block
+	// 3. Create Transaction record with atomicity
 	var txResponse *dto.TransactionResponse
 	err := s.db.Transaction(func(dbTx *gorm.DB) error {
-		// Note: Repositories should ideally take dbTx, but for now we use domain logic
-		// In a real best-practice, we'd pass dbTx to repository methods
+		// Use the repository with the transaction connection
+		txRepo := s.repo.WithTx(dbTx)
 
 		newTx := &domain.Transaction{
 			UserID:              userID,
@@ -100,7 +99,7 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 			TransactionDate:     req.TransactionDate,
 		}
 
-		if err := dbTx.Create(newTx).Error; err != nil {
+		if err := txRepo.Create(newTx); err != nil {
 			return err
 		}
 

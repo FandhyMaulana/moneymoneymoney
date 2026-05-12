@@ -21,7 +21,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	var req dto.CreateTransactionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 		return
 	}
 
@@ -32,14 +32,14 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 			err.Error() == "invalid destination wallet: not found" ||
 			err.Error() == "invalid source wallet: not found" ||
 			err.Error() == "invalid source or destination wallet: not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse(err.Error()))
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, dto.SuccessResponse("transaction created successfully", res))
 }
 
 func (h *TransactionHandler) GetTransactions(c *gin.Context) {
@@ -47,9 +47,9 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 
 	res, err := h.service.GetUserTransactions(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, dto.SuccessResponse("transactions retrieved successfully", res))
 }

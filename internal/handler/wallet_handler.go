@@ -23,17 +23,17 @@ func (h *WalletHandler) CreateWallet(c *gin.Context) {
 
 	var req dto.CreateWalletRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 		return
 	}
 
 	res, err := h.service.CreateWallet(userID, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, dto.SuccessResponse("wallet created successfully", res))
 }
 
 func (h *WalletHandler) GetWallets(c *gin.Context) {
@@ -41,11 +41,11 @@ func (h *WalletHandler) GetWallets(c *gin.Context) {
 
 	res, err := h.service.GetUserWallets(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, dto.SuccessResponse("wallets retrieved successfully", res))
 }
 
 func (h *WalletHandler) DeleteWallet(c *gin.Context) {
@@ -54,12 +54,12 @@ func (h *WalletHandler) DeleteWallet(c *gin.Context) {
 
 	if err := h.service.DeleteWallet(walletID, userID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "wallet not found"})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse("wallet not found"))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "wallet deleted successfully"})
+	c.JSON(http.StatusOK, dto.SuccessResponse("wallet deleted successfully", nil))
 }

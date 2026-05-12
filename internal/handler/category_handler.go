@@ -23,17 +23,17 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 
 	var req dto.CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 		return
 	}
 
 	res, err := h.service.CreateCategory(userID, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, dto.SuccessResponse("category created successfully", res))
 }
 
 func (h *CategoryHandler) GetCategories(c *gin.Context) {
@@ -41,11 +41,11 @@ func (h *CategoryHandler) GetCategories(c *gin.Context) {
 
 	res, err := h.service.GetUserCategories(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, dto.SuccessResponse("categories retrieved successfully", res))
 }
 
 func (h *CategoryHandler) DeleteCategory(c *gin.Context) {
@@ -54,12 +54,12 @@ func (h *CategoryHandler) DeleteCategory(c *gin.Context) {
 
 	if err := h.service.DeleteCategory(id, userID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "category not found or cannot be deleted"})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse("category not found or cannot be deleted"))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "category deleted successfully"})
+	c.JSON(http.StatusOK, dto.SuccessResponse("category deleted successfully", nil))
 }

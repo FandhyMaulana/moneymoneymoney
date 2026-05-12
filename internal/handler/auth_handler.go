@@ -22,41 +22,41 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse("invalid request body"))
 		return
 	}
 
 	if err := h.service.Register(req); err != nil {
 		if errors.Is(err, service.ErrEmailExists) {
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.JSON(http.StatusConflict, dto.ErrorResponse(err.Error()))
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to register user"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "user registered successfully"})
+	c.JSON(http.StatusCreated, dto.SuccessResponse("user registered successfully", nil))
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse("invalid request body"))
 		return
 	}
 
 	res, err := h.service.Login(req)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse(err.Error()))
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to login"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, dto.SuccessResponse("login successful", res))
 }

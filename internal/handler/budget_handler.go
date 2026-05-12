@@ -21,21 +21,21 @@ func (h *BudgetHandler) SetBudget(c *gin.Context) {
 
 	var req dto.UpsertBudgetRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 		return
 	}
 
 	res, err := h.service.SetBudget(userID, req)
 	if err != nil {
 		if err.Error() == "invalid category" {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.JSON(http.StatusNotFound, dto.ErrorResponse(err.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, dto.SuccessResponse("budget set successfully", res))
 }
 
 func (h *BudgetHandler) GetBudgets(c *gin.Context) {
@@ -43,9 +43,9 @@ func (h *BudgetHandler) GetBudgets(c *gin.Context) {
 
 	res, err := h.service.GetBudgets(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, dto.SuccessResponse("budgets retrieved successfully", res))
 }
