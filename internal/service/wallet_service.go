@@ -19,6 +19,7 @@ func (s *WalletService) CreateWallet(userID string, req dto.CreateWalletRequest)
 		UserID:   userID,
 		Name:     req.Name,
 		Type:     req.Type,
+		Balance:  0, // Initial balance is 0
 		IsActive: true,
 	}
 
@@ -30,6 +31,7 @@ func (s *WalletService) CreateWallet(userID string, req dto.CreateWalletRequest)
 		ID:        wallet.ID,
 		Name:      wallet.Name,
 		Type:      wallet.Type,
+		Balance:   wallet.Balance,
 		IsActive:  wallet.IsActive,
 		CreatedAt: wallet.CreatedAt.Format("2006-01-02 15:04:05"),
 	}, nil
@@ -47,6 +49,7 @@ func (s *WalletService) GetUserWallets(userID string) ([]dto.WalletResponse, err
 			ID:        w.ID,
 			Name:      w.Name,
 			Type:      w.Type,
+			Balance:   w.Balance,
 			IsActive:  w.IsActive,
 			CreatedAt: w.CreatedAt.Format("2006-01-02 15:04:05"),
 		})

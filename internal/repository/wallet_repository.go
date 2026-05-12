@@ -41,6 +41,11 @@ func (r *WalletRepository) Update(wallet *domain.Wallet) error {
 	return r.db.Save(wallet).Error
 }
 
+func (r *WalletRepository) UpdateBalance(id string, userID string, amount float64) error {
+	return r.db.Model(&domain.Wallet{}).Where("id = ? AND user_id = ?", id, userID).
+		Update("balance", gorm.Expr("balance + ?", amount)).Error
+}
+
 func (r *WalletRepository) Delete(id string, userID string) error {
 	result := r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&domain.Wallet{})
 	if result.Error != nil {

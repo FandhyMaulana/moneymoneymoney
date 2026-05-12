@@ -79,6 +79,7 @@ func main() {
 		// Transaction Routes
 		api.POST("/transactions", transactionHandler.CreateTransaction)
 		api.GET("/transactions", transactionHandler.GetTransactions)
+		api.DELETE("/transactions/:id", transactionHandler.DeleteTransaction)
 
 		// Budget Routes
 		api.POST("/budgets", budgetHandler.SetBudget)

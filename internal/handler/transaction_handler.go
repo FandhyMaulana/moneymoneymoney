@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"errors"
 	"money-manager/internal/dto"
 	"money-manager/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type TransactionHandler struct {
@@ -28,10 +30,10 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	res, err := h.service.CreateTransaction(userID, req)
 	if err != nil {
 		// Specific error mapping for validation
-		if err.Error() == "invalid category: not found" ||
-			err.Error() == "invalid destination wallet: not found" ||
-			err.Error() == "invalid source wallet: not found" ||
-			err.Error() == "invalid source or destination wallet: not found" {
+		if err.Error() == "invalid category: not found" || 
+		   err.Error() == "invalid destination wallet: not found" || 
+		   err.Error() == "invalid source wallet: not found" ||
+		   err.Error() == "invalid source or destination wallet: not found" {
 			c.JSON(http.StatusNotFound, dto.ErrorResponse(err.Error()))
 			return
 		}
@@ -52,4 +54,20 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.SuccessResponse("transactions retrieved successfully", res))
+}
+
+func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
+	userID := c.MustGet("user_id").(string)
+	id := c.Param("id")
+
+	if err := h.service.DeleteTransaction(id, userID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dto.ErrorResponse("transaction not found"))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse("transaction deleted and wallet balance reverted", nil))
 }

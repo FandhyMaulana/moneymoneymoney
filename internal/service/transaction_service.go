@@ -80,11 +80,11 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 		}
 	}
 
-	// 3. Create Transaction record with atomicity
+	// 3. Create Transaction and Update Wallet Balance with atomicity
 	var txResponse *dto.TransactionResponse
 	err := s.db.Transaction(func(dbTx *gorm.DB) error {
-		// Use the repository with the transaction connection
 		txRepo := s.repo.WithTx(dbTx)
+		txWalletRepo := s.walletRepo.WithTx(dbTx)
 
 		newTx := &domain.Transaction{
 			UserID:              userID,
@@ -101,6 +101,25 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 
 		if err := txRepo.Create(newTx); err != nil {
 			return err
+		}
+
+		// Update Wallet Balance based on Type
+		switch req.Type {
+		case domain.TransactionTypeIncome:
+			if err := txWalletRepo.UpdateBalance(*req.DestinationWalletID, userID, req.Amount); err != nil {
+				return err
+			}
+		case domain.TransactionTypeExpense:
+			if err := txWalletRepo.UpdateBalance(*req.SourceWalletID, userID, -req.Amount); err != nil {
+				return err
+			}
+		case domain.TransactionTypeTransfer:
+			if err := txWalletRepo.UpdateBalance(*req.SourceWalletID, userID, -req.Amount); err != nil {
+				return err
+			}
+			if err := txWalletRepo.UpdateBalance(*req.DestinationWalletID, userID, req.Amount); err != nil {
+				return err
+			}
 		}
 
 		txResponse = &dto.TransactionResponse{
@@ -150,4 +169,45 @@ func (s *TransactionService) GetUserTransactions(userID string) ([]dto.Transacti
 	}
 
 	return res, nil
+}
+
+func (s *TransactionService) DeleteTransaction(id string, userID string) error {
+	return s.db.Transaction(func(dbTx *gorm.DB) error {
+		txRepo := s.repo.WithTx(dbTx)
+		txWalletRepo := s.walletRepo.WithTx(dbTx)
+
+		// 1. Get the transaction to know what to revert
+		tx, err := txRepo.GetByID(id, userID)
+		if err != nil {
+			return err
+		}
+
+		// 2. Revert Wallet Balance
+		switch tx.Type {
+		case domain.TransactionTypeIncome:
+			if tx.DestinationWalletID != nil {
+				if err := txWalletRepo.UpdateBalance(*tx.DestinationWalletID, userID, -tx.Amount); err != nil {
+					return err
+				}
+			}
+		case domain.TransactionTypeExpense:
+			if tx.SourceWalletID != nil {
+				if err := txWalletRepo.UpdateBalance(*tx.SourceWalletID, userID, tx.Amount); err != nil {
+					return err
+				}
+			}
+		case domain.TransactionTypeTransfer:
+			if tx.SourceWalletID != nil && tx.DestinationWalletID != nil {
+				if err := txWalletRepo.UpdateBalance(*tx.SourceWalletID, userID, tx.Amount); err != nil {
+					return err
+				}
+				if err := txWalletRepo.UpdateBalance(*tx.DestinationWalletID, userID, -tx.Amount); err != nil {
+					return err
+				}
+			}
+		}
+
+		// 3. Delete the transaction record
+		return txRepo.Delete(id, userID)
+	})
 }
