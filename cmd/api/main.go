@@ -32,7 +32,7 @@ func main() {
 	authService := service.NewAuthService(userRepo, cfg)
 	walletService := service.NewWalletService(walletRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
-	transactionService := service.NewTransactionService(transactionRepo, walletRepo, categoryRepo)
+	transactionService := service.NewTransactionService(db, transactionRepo, walletRepo, categoryRepo)
 	budgetService := service.NewBudgetService(budgetRepo, categoryRepo)
 
 	// 5. Initialize Handler
