@@ -2,6 +2,7 @@ package repository
 
 import (
 	"money-manager/internal/domain"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,11 +17,14 @@ func NewBudgetRepository(db *gorm.DB) *BudgetRepository {
 }
 
 func (r *BudgetRepository) Upsert(budget *domain.Budget) error {
+	now := time.Now()
+	budget.UpdatedAt = &now
+
 	// Use OnConflict to handle update if (user_id, category_id, period_month, period_year) exists
 	return r.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "user_id"}, {Name: "category_id"}, {Name: "period_month"}, {Name: "period_year"}},
 		DoUpdates: clause.AssignmentColumns([]string{"amount", "updated_at"}),
-	}).Create(budget).Error
+	}).Clauses(clause.Returning{}).Create(budget).Error
 }
 
 func (r *BudgetRepository) GetByUserID(userID string) ([]domain.Budget, error) {
@@ -36,5 +40,12 @@ func (r *BudgetRepository) GetByPeriod(userID string, month int, year int) ([]do
 }
 
 func (r *BudgetRepository) Delete(id string, userID string) error {
-	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&domain.Budget{}).Error
+	result := r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&domain.Budget{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
