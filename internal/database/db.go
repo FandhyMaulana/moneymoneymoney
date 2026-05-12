@@ -2,6 +2,7 @@ package database
 
 import (
 	"log"
+	"money-manager/internal/domain"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -26,3 +27,19 @@ func Connect(dsn string) *gorm.DB {
 	log.Println("Database connected")
 	return db
 }
+
+func Migrate(db *gorm.DB) {
+	err := db.AutoMigrate(
+		&domain.User{},
+		&domain.Wallet{},
+		&domain.Category{},
+		&domain.Transaction{},
+		&domain.Budget{},
+	)
+	if err != nil {
+		log.Fatal("failed to migrate database:", err)
+	}
+
+	log.Println("Database migrated")
+}
+

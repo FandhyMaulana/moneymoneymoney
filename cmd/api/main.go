@@ -5,7 +5,6 @@ import (
 
 	"money-manager/internal/config"
 	"money-manager/internal/database"
-	"money-manager/internal/domain"
 	"money-manager/internal/handler"
 	"money-manager/internal/repository"
 	"money-manager/internal/service"
@@ -14,44 +13,36 @@ import (
 )
 
 func main() {
-	// load config
+	// 1. Load Config
 	cfg := config.LoadConfig()
 
-	// connect DB
+	// 2. Connect & Migrate DB
 	db := database.Connect(cfg.DB_DSN)
+	database.Migrate(db)
 
-	err := db.AutoMigrate(
-		&domain.User{},
-		&domain.Wallet{},
-		&domain.Category{},
-		&domain.Transaction{},
-		&domain.Budget{},
-	)
-
-	if err != nil {
-		log.Fatal("failed to migrate:", err)
-	}
-
-	log.Println("Database migrated")
-
-	// initialize dependencies
+	// 3. Initialize Repository
 	userRepo := repository.NewUserRepository(db)
+
+	// 4. Initialize Service
 	authService := service.NewAuthService(userRepo, cfg)
+
+	// 5. Initialize Handler
 	authHandler := handler.NewAuthHandler(authService)
 
-	// init server
+	// 6. Setup Router
 	r := gin.Default()
 
-	// routes
-	auth := r.Group("/auth")
-	{
-		auth.POST("/register", authHandler.Register)
-		auth.POST("/login", authHandler.Login)
-	}
-
+	// Health Check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "OK"})
 	})
+
+	// Auth Routes
+	authGroup := r.Group("/auth")
+	{
+		authGroup.POST("/register", authHandler.Register)
+		authGroup.POST("/login", authHandler.Login)
+	}
 
 	log.Println("Server running on port", cfg.Port)
 	r.Run(":" + cfg.Port)
