@@ -36,5 +36,12 @@ func (r *CategoryRepository) GetByID(id string, userID string) (*domain.Category
 
 func (r *CategoryRepository) Delete(id string, userID string) error {
 	// Only allow deleting non-system categories owned by the user
-	return r.db.Where("id = ? AND user_id = ? AND is_system = ?", id, userID, false).Delete(&domain.Category{}).Error
+	result := r.db.Where("id = ? AND user_id = ? AND is_system = ?", id, userID, false).Delete(&domain.Category{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
