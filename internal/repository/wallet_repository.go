@@ -38,5 +38,12 @@ func (r *WalletRepository) Update(wallet *domain.Wallet) error {
 }
 
 func (r *WalletRepository) Delete(id string, userID string) error {
-	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&domain.Wallet{}).Error
+	result := r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&domain.Wallet{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
