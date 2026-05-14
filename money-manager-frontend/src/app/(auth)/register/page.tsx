@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
-import { LoginForm } from "@/features/auth/components/login-form";
+import { RegisterForm } from "@/features/auth/components/register-form";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
 
@@ -25,7 +25,7 @@ export default function LoginPage() {
         <div className="absolute -bottom-[10%] -right-[10%] size-[40%] rounded-full bg-primary/5 blur-[120px]" />
       </div>
       
-      <LoginForm />
+      <RegisterForm />
     </div>
   );
 }
