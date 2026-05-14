@@ -5,6 +5,7 @@ import (
 	"money-manager/internal/service"
 	"money-manager/internal/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,6 +38,21 @@ func (h *BudgetHandler) SetBudget(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.SuccessResponse("budget set successfully", res))
+}
+
+func (h *BudgetHandler) GetBudgetSummary(c *gin.Context) {
+	userID := utils.GetUserID(c)
+
+	month, _ := strconv.Atoi(c.Query("month"))
+	year, _ := strconv.Atoi(c.Query("year"))
+
+	res, err := h.service.GetBudgetSummary(userID, month, year)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse("budget summary retrieved successfully", res))
 }
 
 func (h *BudgetHandler) GetBudgets(c *gin.Context) {

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"money-manager/internal/domain"
+	"money-manager/internal/dto"
 	"time"
 
 	"gorm.io/gorm"
@@ -29,6 +30,20 @@ func (r *BudgetRepository) Upsert(budget *domain.Budget) error {
 		Columns:   []clause.Column{{Name: "user_id"}, {Name: "category_id"}, {Name: "period_month"}, {Name: "period_year"}},
 		DoUpdates: clause.AssignmentColumns([]string{"amount", "updated_at"}),
 	}).Clauses(clause.Returning{}).Create(budget).Error
+}
+
+func (r *BudgetRepository) GetBudgetsWithSpending(userID string, month, year int) ([]dto.BudgetDetailResponse, error) {
+	var results []dto.BudgetDetailResponse
+
+	// Join budgets with categories and a subquery for transaction sums
+	err := r.db.Table("budgets").
+		Select("budgets.id, budgets.category_id, categories.name as category_name, budgets.amount as budget_limit, COALESCE(spent_data.total, 0) as spent").
+		Joins("JOIN categories ON categories.id = budgets.category_id").
+		Joins("LEFT JOIN (SELECT category_id, SUM(amount) as total FROM transactions WHERE user_id = ? AND type = ? AND EXTRACT(MONTH FROM transaction_date) = ? AND EXTRACT(YEAR FROM transaction_date) = ? AND deleted_at IS NULL GROUP BY category_id) as spent_data ON spent_data.category_id = budgets.category_id", userID, domain.TransactionTypeExpense, month, year).
+		Where("budgets.user_id = ? AND budgets.period_month = ? AND budgets.period_year = ?", userID, month, year).
+		Scan(&results).Error
+
+	return results, err
 }
 
 func (r *BudgetRepository) GetByUserID(userID string) ([]domain.Budget, error) {
