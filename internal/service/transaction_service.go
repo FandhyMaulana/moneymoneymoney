@@ -1,7 +1,10 @@
 package service
 
 import (
+	"encoding/csv"
 	"errors"
+	"fmt"
+	"io"
 	"money-manager/internal/domain"
 	"money-manager/internal/dto"
 	"money-manager/internal/repository"
@@ -28,6 +31,57 @@ func NewTransactionService(
 		walletRepo:   walletRepo,
 		categoryRepo: categoryRepo,
 	}
+}
+
+func (s *TransactionService) ExportTransactionsToCSV(userID string, query dto.TransactionQuery, w io.Writer) error {
+	// Ensure limit is 0 for export
+	query.Limit = 0
+	txs, _, err := s.repo.GetByUserID(userID, query)
+	if err != nil {
+		return err
+	}
+
+	writer := csv.NewWriter(w)
+	defer writer.Flush()
+
+	// Header
+	header := []string{"Date", "Type", "Wallet", "Category", "Amount", "Note"}
+	if err := writer.Write(header); err != nil {
+		return err
+	}
+
+	// Data
+	for _, t := range txs {
+		walletName := "N/A"
+		if t.SourceWalletID != nil {
+			walletName = *t.SourceWalletID
+		} else if t.DestinationWalletID != nil {
+			walletName = *t.DestinationWalletID
+		}
+
+		categoryName := "N/A"
+		if t.CategoryID != nil {
+			categoryName = *t.CategoryID
+		}
+
+		row := []string{
+			t.TransactionDate.Format("2006-01-02 15:04:05"),
+			t.Type,
+			walletName,
+			categoryName,
+			fmt.Sprintf("%.2f", t.Amount),
+			" ",
+		}
+		if t.Note != nil {
+			row[5] = *t.Note
+		}
+
+		if err := writer.Write(row); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTransactionRequest) (*dto.TransactionResponse, error) {

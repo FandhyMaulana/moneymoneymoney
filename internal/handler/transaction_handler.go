@@ -64,6 +64,24 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.PaginatedResponse("transactions retrieved successfully", res, meta))
 }
 
+func (h *TransactionHandler) ExportTransactions(c *gin.Context) {
+	userID := utils.GetUserID(c)
+
+	var query dto.TransactionQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+		return
+	}
+
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Disposition", "attachment;filename=transactions.csv")
+
+	if err := h.service.ExportTransactionsToCSV(userID, query, c.Writer); err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("failed to export transactions"))
+		return
+	}
+}
+
 func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
 	userID := utils.GetUserID(c)
 	id := c.Param("id")
