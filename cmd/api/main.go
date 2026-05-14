@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"money-manager/internal/config"
 	"money-manager/internal/database"
@@ -52,6 +53,7 @@ func main() {
 
 	// Auth Routes
 	authGroup := r.Group("/auth")
+	authGroup.Use(middleware.RateLimiter(5, 1*time.Minute)) // 5 requests per minute for auth
 	{
 		authGroup.POST("/register", authHandler.Register)
 		authGroup.POST("/login", authHandler.Login)
