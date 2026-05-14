@@ -60,7 +60,7 @@ export function TransactionForm({
     formState: { errors },
     reset,
   } = useForm<TransactionFormData>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(transactionSchema) as any,
     defaultValues: initialData ? {
       type: initialData.type,
       amount: initialData.amount,
@@ -156,7 +156,6 @@ export function TransactionForm({
                 mode="single"
                 selected={dateValue ? new Date(dateValue) : undefined}
                 onSelect={(date) => setValue("transaction_date", date?.toISOString() || "")}
-                initialFocus
                 className="rounded-2xl"
               />
             </PopoverContent>

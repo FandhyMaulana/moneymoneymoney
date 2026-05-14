@@ -51,7 +51,7 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
             color: "hsl(var(--foreground))",
           }}
           itemStyle={{ color: "hsl(var(--foreground))" }}
-          formatter={(value: number) => formatCurrency(value)}
+          formatter={(value: any) => formatCurrency(Number(value))}
         />
         <Legend 
           verticalAlign="bottom" 

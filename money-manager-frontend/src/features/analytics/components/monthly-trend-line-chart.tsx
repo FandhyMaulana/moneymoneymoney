@@ -51,7 +51,7 @@ export function MonthlyTrendLineChart({ data }: MonthlyTrendLineChartProps) {
             borderRadius: "var(--radius)",
             color: "hsl(var(--foreground))",
           }}
-          formatter={(value: number) => formatCurrency(value)}
+          formatter={(value: any) => formatCurrency(Number(value))}
         />
         <Legend 
           verticalAlign="top" 
