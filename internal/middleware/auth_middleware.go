@@ -33,7 +33,7 @@ func AuthMiddleware(secret string) gin.HandlerFunc {
 		}
 
 		// Store user_id in context for handlers to use
-		c.Set("user_id", claims.UserID)
+		c.Set(utils.UserIDKey, claims.UserID)
 		c.Next()
 	}
 }
