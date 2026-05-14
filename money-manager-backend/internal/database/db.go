@@ -10,7 +10,10 @@ import (
 )
 
 func Connect(dsn string) *gorm.DB {
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true, // Disables implicit prepared statement usage
+	}), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database:", err)
 	}
