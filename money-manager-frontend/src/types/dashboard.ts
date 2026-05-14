@@ -1,9 +1,4 @@
-export interface CategorySpending {
-  id: string;
-  name: string;
-  amount: number;
-  percentage: number;
-}
+import { CategorySpending } from "./analytics";
 
 export interface DashboardSummary {
   total_balance: number;
@@ -13,13 +8,4 @@ export interface DashboardSummary {
   top_expense_category: CategorySpending | null;
   wallet_count: number;
   transaction_count_this_month: number;
-}
-
-export interface MonthlyReport {
-  month: number;
-  year: number;
-  income: number;
-  expense: number;
-  savings: number;
-  categories: CategorySpending[];
 }
