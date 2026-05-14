@@ -30,6 +30,9 @@ func (r *TransactionRepository) GetByUserID(userID string, query dto.Transaction
 	db := r.db.Model(&domain.Transaction{}).Where("user_id = ?", userID)
 
 	// Filters
+	if query.Search != "" {
+		db = db.Where("note ILIKE ?", "%"+query.Search+"%")
+	}
 	if query.Type != nil {
 		db = db.Where("type = ?", *query.Type)
 	}
@@ -38,6 +41,12 @@ func (r *TransactionRepository) GetByUserID(userID string, query dto.Transaction
 	}
 	if query.WalletID != nil {
 		db = db.Where("(source_wallet_id = ? OR destination_wallet_id = ?)", *query.WalletID, *query.WalletID)
+	}
+	if query.MinAmount != nil {
+		db = db.Where("amount >= ?", *query.MinAmount)
+	}
+	if query.MaxAmount != nil {
+		db = db.Where("amount <= ?", *query.MaxAmount)
 	}
 	if query.Month != nil {
 		db = db.Where("EXTRACT(MONTH FROM transaction_date) = ?", *query.Month)
@@ -70,8 +79,13 @@ func (r *TransactionRepository) GetByUserID(userID string, query dto.Transaction
 	}
 
 	// Pagination
-	offset := (query.Page - 1) * query.Limit
-	err := db.Limit(query.Limit).Offset(offset).Find(&txs).Error
+	// If Limit is 0, return all (useful for export)
+	if query.Limit > 0 {
+		offset := (query.Page - 1) * query.Limit
+		db = db.Limit(query.Limit).Offset(offset)
+	}
+
+	err := db.Find(&txs).Error
 
 	return txs, total, err
 }
