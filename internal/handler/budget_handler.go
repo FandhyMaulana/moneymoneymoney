@@ -3,6 +3,7 @@ package handler
 import (
 	"money-manager/internal/dto"
 	"money-manager/internal/service"
+	"money-manager/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ func NewBudgetHandler(service *service.BudgetService) *BudgetHandler {
 }
 
 func (h *BudgetHandler) SetBudget(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	var req dto.UpsertBudgetRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -39,7 +40,7 @@ func (h *BudgetHandler) SetBudget(c *gin.Context) {
 }
 
 func (h *BudgetHandler) GetBudgets(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	res, err := h.service.GetBudgets(userID)
 	if err != nil {

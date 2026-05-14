@@ -4,6 +4,7 @@ import (
 	"errors"
 	"money-manager/internal/dto"
 	"money-manager/internal/service"
+	"money-manager/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func NewCategoryHandler(service *service.CategoryService) *CategoryHandler {
 }
 
 func (h *CategoryHandler) CreateCategory(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	var req dto.CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,7 +38,7 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 }
 
 func (h *CategoryHandler) GetCategories(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	res, err := h.service.GetUserCategories(userID)
 	if err != nil {
@@ -49,7 +50,7 @@ func (h *CategoryHandler) GetCategories(c *gin.Context) {
 }
 
 func (h *CategoryHandler) DeleteCategory(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 	id := c.Param("id")
 
 	if err := h.service.DeleteCategory(id, userID); err != nil {

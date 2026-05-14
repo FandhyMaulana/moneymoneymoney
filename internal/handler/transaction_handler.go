@@ -4,6 +4,7 @@ import (
 	"errors"
 	"money-manager/internal/dto"
 	"money-manager/internal/service"
+	"money-manager/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func NewTransactionHandler(service *service.TransactionService) *TransactionHand
 }
 
 func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	var req dto.CreateTransactionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -45,7 +46,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 }
 
 func (h *TransactionHandler) GetTransactions(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	res, err := h.service.GetUserTransactions(userID)
 	if err != nil {
@@ -57,7 +58,7 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 }
 
 func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 	id := c.Param("id")
 
 	if err := h.service.DeleteTransaction(id, userID); err != nil {

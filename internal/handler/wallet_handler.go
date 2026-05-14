@@ -4,6 +4,7 @@ import (
 	"errors"
 	"money-manager/internal/dto"
 	"money-manager/internal/service"
+	"money-manager/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func NewWalletHandler(service *service.WalletService) *WalletHandler {
 }
 
 func (h *WalletHandler) CreateWallet(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	var req dto.CreateWalletRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,7 +38,7 @@ func (h *WalletHandler) CreateWallet(c *gin.Context) {
 }
 
 func (h *WalletHandler) GetWallets(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 
 	res, err := h.service.GetUserWallets(userID)
 	if err != nil {
@@ -49,7 +50,7 @@ func (h *WalletHandler) GetWallets(c *gin.Context) {
 }
 
 func (h *WalletHandler) DeleteWallet(c *gin.Context) {
-	userID := c.MustGet("user_id").(string)
+	userID := utils.GetUserID(c)
 	walletID := c.Param("id")
 
 	if err := h.service.DeleteWallet(walletID, userID); err != nil {
