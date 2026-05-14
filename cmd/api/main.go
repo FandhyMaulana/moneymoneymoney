@@ -28,6 +28,7 @@ func main() {
 	categoryRepo := repository.NewCategoryRepository(db)
 	transactionRepo := repository.NewTransactionRepository(db)
 	budgetRepo := repository.NewBudgetRepository(db)
+	recurringRepo := repository.NewRecurringTransactionRepository(db)
 
 	// 4. Initialize Service
 	authService := service.NewAuthService(userRepo, cfg)
@@ -37,6 +38,10 @@ func main() {
 	budgetService := service.NewBudgetService(budgetRepo, categoryRepo)
 	dashboardService := service.NewDashboardService(walletRepo, transactionRepo)
 	reportService := service.NewReportService(transactionRepo)
+	recurringService := service.NewRecurringTransactionService(recurringRepo, walletRepo, categoryRepo)
+	
+	executionService := service.NewRecurringExecutionService(db, recurringRepo, transactionRepo, walletRepo)
+	executionService.Start()
 
 	// 5. Initialize Handler
 	authHandler := handler.NewAuthHandler(authService)
@@ -46,6 +51,7 @@ func main() {
 	budgetHandler := handler.NewBudgetHandler(budgetService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 	reportHandler := handler.NewReportHandler(reportService)
+	recurringHandler := handler.NewRecurringTransactionHandler(recurringService)
 
 	// 6. Setup Router
 	r := gin.Default()
@@ -85,6 +91,7 @@ func main() {
 		// Transaction Routes
 		api.POST("/transactions", transactionHandler.CreateTransaction)
 		api.GET("/transactions", transactionHandler.GetTransactions)
+		api.GET("/transactions/export", transactionHandler.ExportTransactions)
 		api.DELETE("/transactions/:id", transactionHandler.DeleteTransaction)
 
 		// Budget Routes
@@ -95,6 +102,12 @@ func main() {
 		// Dashboard & Report Routes
 		api.GET("/dashboard", dashboardHandler.GetSummary)
 		api.GET("/reports/monthly", reportHandler.GetMonthlyReport)
+
+		// Recurring Transaction Routes
+		api.GET("/recurring-transactions", recurringHandler.GetUserRecurringTransactions)
+		api.POST("/recurring-transactions", recurringHandler.Create)
+		api.PUT("/recurring-transactions/:id", recurringHandler.Update)
+		api.DELETE("/recurring-transactions/:id", recurringHandler.Delete)
 	}
 
 	log.Println("Server running on port", cfg.Port)
