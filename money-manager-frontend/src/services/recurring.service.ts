@@ -1,17 +1,24 @@
 import api from "./api";
 import { ApiResponse } from "@/types";
+import { 
+  RecurringTransaction, 
+  RecurringFormData, 
+  RecurringQuery 
+} from "@/types/recurring";
 
 export const recurringService = {
-  getAll: async (params?: any) => {
-    const response = await api.get<ApiResponse<any[]>>("/api/recurring-transactions", { params });
+  getAll: async (params?: RecurringQuery) => {
+    const response = await api.get<ApiResponse<RecurringTransaction[]>>("/api/recurring-transactions", { 
+      params 
+    });
     return response.data;
   },
-  create: async (data: any) => {
-    const response = await api.post<ApiResponse<any>>("/api/recurring-transactions", data);
+  create: async (data: RecurringFormData) => {
+    const response = await api.post<ApiResponse<RecurringTransaction>>("/api/recurring-transactions", data);
     return response.data;
   },
-  update: async (id: string, data: any) => {
-    const response = await api.put<ApiResponse<any>>(`/api/recurring-transactions/${id}`, data);
+  update: async (id: string, data: Partial<RecurringFormData>) => {
+    const response = await api.put<ApiResponse<RecurringTransaction>>(`/api/recurring-transactions/${id}`, data);
     return response.data;
   },
   delete: async (id: string) => {
