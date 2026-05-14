@@ -40,13 +40,20 @@ func (h *WalletHandler) CreateWallet(c *gin.Context) {
 func (h *WalletHandler) GetWallets(c *gin.Context) {
 	userID := utils.GetUserID(c)
 
-	res, err := h.service.GetUserWallets(userID)
+	var query dto.PaginationQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+		return
+	}
+
+	res, total, err := h.service.GetUserWallets(userID, query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessResponse("wallets retrieved successfully", res))
+	meta := utils.GetPaginationMeta(total, query.Page, query.Limit)
+	c.JSON(http.StatusOK, dto.PaginatedResponse("wallets retrieved successfully", res, meta))
 }
 
 func (h *WalletHandler) DeleteWallet(c *gin.Context) {

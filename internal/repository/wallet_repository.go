@@ -2,6 +2,7 @@ package repository
 
 import (
 	"money-manager/internal/domain"
+	"money-manager/internal/dto"
 
 	"gorm.io/gorm"
 )
@@ -22,10 +23,19 @@ func (r *WalletRepository) Create(wallet *domain.Wallet) error {
 	return r.db.Create(wallet).Error
 }
 
-func (r *WalletRepository) GetByUserID(userID string) ([]domain.Wallet, error) {
+func (r *WalletRepository) GetByUserID(userID string, query dto.PaginationQuery) ([]domain.Wallet, int64, error) {
 	var wallets []domain.Wallet
-	err := r.db.Where("user_id = ?", userID).Find(&wallets).Error
-	return wallets, err
+	var total int64
+
+	db := r.db.Model(&domain.Wallet{}).Where("user_id = ? AND deleted_at IS NULL", userID)
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (query.Page - 1) * query.Limit
+	err := db.Limit(query.Limit).Offset(offset).Find(&wallets).Error
+	return wallets, total, err
 }
 
 func (r *WalletRepository) GetByID(id string, userID string) (*domain.Wallet, error) {

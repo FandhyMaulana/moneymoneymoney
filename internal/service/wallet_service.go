@@ -19,7 +19,7 @@ func (s *WalletService) CreateWallet(userID string, req dto.CreateWalletRequest)
 		UserID:   userID,
 		Name:     req.Name,
 		Type:     req.Type,
-		Balance:  0, // Initial balance is 0
+		Balance:  req.InitialBalance,
 		IsActive: true,
 	}
 
@@ -37,10 +37,10 @@ func (s *WalletService) CreateWallet(userID string, req dto.CreateWalletRequest)
 	}, nil
 }
 
-func (s *WalletService) GetUserWallets(userID string) ([]dto.WalletResponse, error) {
-	wallets, err := s.repo.GetByUserID(userID)
+func (s *WalletService) GetUserWallets(userID string, query dto.PaginationQuery) ([]dto.WalletResponse, int64, error) {
+	wallets, total, err := s.repo.GetByUserID(userID, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var res []dto.WalletResponse
@@ -55,7 +55,7 @@ func (s *WalletService) GetUserWallets(userID string) ([]dto.WalletResponse, err
 		})
 	}
 
-	return res, nil
+	return res, total, nil
 }
 
 func (s *WalletService) DeleteWallet(id string, userID string) error {

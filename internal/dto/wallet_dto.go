@@ -1,8 +1,9 @@
 package dto
 
 type CreateWalletRequest struct {
-	Name string `json:"name" binding:"required"`
-	Type string `json:"type" binding:"required"` // e.g., "bank", "cash", "e-wallet"
+	Name           string  `json:"name" binding:"required"`
+	Type           string  `json:"type" binding:"required"` // e.g., "bank", "cash", "e-wallet"
+	InitialBalance float64 `json:"initial_balance" binding:"min=0"`
 }
 
 type UpdateWalletRequest struct {
