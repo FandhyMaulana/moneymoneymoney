@@ -1,4 +1,4 @@
-import { CategorySpending } from "./analytics";
+export type { CategorySpending, MonthlyReport } from "./analytics";
 
 export interface DashboardSummary {
   total_balance: number;
