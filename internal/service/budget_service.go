@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"math"
 	"money-manager/internal/domain"
 	"money-manager/internal/dto"
@@ -70,8 +71,10 @@ func (s *BudgetService) GetBudgetSummary(userID string, month, year int) (*dto.B
 		// Status rules: safe (< 80%), warning (80-99%), exceeded (>=100%)
 		if b.Percentage >= 100 {
 			b.Status = "exceeded"
+			b.Alert = "You have exceeded your " + b.CategoryName + " budget."
 		} else if b.Percentage >= 80 {
 			b.Status = "warning"
+			b.Alert = "You have used " + fmt.Sprintf("%.0f%%", b.Percentage) + " of your " + b.CategoryName + " budget."
 		} else {
 			b.Status = "safe"
 		}
