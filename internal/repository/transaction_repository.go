@@ -76,6 +76,88 @@ func (r *TransactionRepository) GetByUserID(userID string, query dto.Transaction
 	return txs, total, err
 }
 
+func (r *TransactionRepository) GetMonthlyTotals(userID string, month, year int) (float64, float64, error) {
+	type Result struct {
+		Type  string
+		Total float64
+	}
+	var results []Result
+
+	err := r.db.Model(&domain.Transaction{}).
+		Select("type, SUM(amount) as total").
+		Where("user_id = ? AND EXTRACT(MONTH FROM transaction_date) = ? AND EXTRACT(YEAR FROM transaction_date) = ? AND type != 'transfer'", userID, month, year).
+		Group("type").
+		Scan(&results).Error
+
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var income, expense float64
+	for _, res := range results {
+		if res.Type == domain.TransactionTypeIncome {
+			income = res.Total
+		} else if res.Type == domain.TransactionTypeExpense {
+			expense = res.Total
+		}
+	}
+
+	return income, expense, nil
+}
+
+func (r *TransactionRepository) GetTopExpenseCategory(userID string, month, year int) (*dto.CategorySpending, error) {
+	var result struct {
+		ID     string
+		Name   string
+		Amount float64
+	}
+
+	err := r.db.Table("transactions").
+		Select("categories.id, categories.name, SUM(transactions.amount) as amount").
+		Joins("JOIN categories ON categories.id = transactions.category_id").
+		Where("transactions.user_id = ? AND transactions.type = ? AND EXTRACT(MONTH FROM transactions.transaction_date) = ? AND EXTRACT(YEAR FROM transactions.transaction_date) = ?", userID, domain.TransactionTypeExpense, month, year).
+		Group("categories.id, categories.name").
+		Order("amount DESC").
+		Limit(1).
+		Scan(&result).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.ID == "" {
+		return nil, nil
+	}
+
+	return &dto.CategorySpending{
+		ID:     result.ID,
+		Name:   result.Name,
+		Amount: result.Amount,
+	}, nil
+}
+
+func (r *TransactionRepository) GetCategoryBreakdown(userID string, month, year int) ([]dto.CategorySpending, error) {
+	var results []dto.CategorySpending
+
+	err := r.db.Table("transactions").
+		Select("categories.id, categories.name, SUM(transactions.amount) as amount").
+		Joins("JOIN categories ON categories.id = transactions.category_id").
+		Where("transactions.user_id = ? AND transactions.type = ? AND EXTRACT(MONTH FROM transactions.transaction_date) = ? AND EXTRACT(YEAR FROM transactions.transaction_date) = ?", userID, domain.TransactionTypeExpense, month, year).
+		Group("categories.id, categories.name").
+		Order("amount DESC").
+		Scan(&results).Error
+
+	return results, err
+}
+
+func (r *TransactionRepository) GetMonthlyTransactionCount(userID string, month, year int) (int64, error) {
+	var count int64
+	err := r.db.Model(&domain.Transaction{}).
+		Where("user_id = ? AND EXTRACT(MONTH FROM transaction_date) = ? AND EXTRACT(YEAR FROM transaction_date) = ?", userID, month, year).
+		Count(&count).Error
+	return count, err
+}
+
 func (r *TransactionRepository) GetByID(id string, userID string) (*domain.Transaction, error) {
 	var tx domain.Transaction
 	err := r.db.Where("id = ? AND user_id = ?", id, userID).First(&tx).Error

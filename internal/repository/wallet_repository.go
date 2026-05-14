@@ -38,6 +38,18 @@ func (r *WalletRepository) GetByUserID(userID string, query dto.PaginationQuery)
 	return wallets, total, err
 }
 
+func (r *WalletRepository) GetTotalBalance(userID string) (float64, error) {
+	var total float64
+	err := r.db.Model(&domain.Wallet{}).Where("user_id = ? AND deleted_at IS NULL", userID).Select("COALESCE(SUM(balance), 0)").Scan(&total).Error
+	return total, err
+}
+
+func (r *WalletRepository) GetWalletCount(userID string) (int64, error) {
+	var count int64
+	err := r.db.Model(&domain.Wallet{}).Where("user_id = ? AND deleted_at IS NULL", userID).Count(&count).Error
+	return count, err
+}
+
 func (r *WalletRepository) GetByID(id string, userID string) (*domain.Wallet, error) {
 	var wallet domain.Wallet
 	err := r.db.Where("id = ? AND user_id = ?", id, userID).First(&wallet).Error
