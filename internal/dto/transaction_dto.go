@@ -31,9 +31,12 @@ type TransactionResponse struct {
 type TransactionQuery struct {
 	Page                int        `form:"page,default=1"`
 	Limit               int        `form:"limit,default=20"`
+	Search              string     `form:"search"` // note search
 	Type                *string    `form:"type" binding:"omitempty,oneof=income expense transfer"`
 	CategoryID          *string    `form:"category_id"`
 	WalletID            *string    `form:"wallet_id"`
+	MinAmount           *float64   `form:"min_amount"`
+	MaxAmount           *float64   `form:"max_amount"`
 	Month               *int       `form:"month" binding:"omitempty,min=1,max=12"`
 	Year                *int       `form:"year" binding:"omitempty,min=1900"`
 	StartDate           *time.Time `form:"start_date" time_format:"2006-01-02"`

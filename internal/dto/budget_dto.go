@@ -24,6 +24,7 @@ type BudgetDetailResponse struct {
 	Remaining    float64 `json:"remaining"`
 	Percentage   float64 `json:"percentage"`
 	Status       string  `json:"status"` // safe, warning, exceeded
+	Alert        string  `json:"alert,omitempty"`
 }
 
 type BudgetSummaryResponse struct {
