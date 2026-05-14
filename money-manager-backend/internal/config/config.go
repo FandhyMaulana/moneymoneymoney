@@ -26,7 +26,7 @@ func LoadConfig() *Config {
 	}
 
 	if cfg.Port == "" {
-		cfg.Port = "8080"
+		cfg.Port = "7777"
 	}
 	if cfg.DB_DSN == "" {
 		log.Fatal("DB_DSN environment variable is required")
