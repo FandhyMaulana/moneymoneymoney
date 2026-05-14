@@ -35,6 +35,8 @@ func main() {
 	categoryService := service.NewCategoryService(categoryRepo)
 	transactionService := service.NewTransactionService(db, transactionRepo, walletRepo, categoryRepo)
 	budgetService := service.NewBudgetService(budgetRepo, categoryRepo)
+	dashboardService := service.NewDashboardService(walletRepo, transactionRepo)
+	reportService := service.NewReportService(transactionRepo)
 
 	// 5. Initialize Handler
 	authHandler := handler.NewAuthHandler(authService)
@@ -42,6 +44,8 @@ func main() {
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
 	budgetHandler := handler.NewBudgetHandler(budgetService)
+	dashboardHandler := handler.NewDashboardHandler(dashboardService)
+	reportHandler := handler.NewReportHandler(reportService)
 
 	// 6. Setup Router
 	r := gin.Default()
@@ -86,6 +90,11 @@ func main() {
 		// Budget Routes
 		api.POST("/budgets", budgetHandler.SetBudget)
 		api.GET("/budgets", budgetHandler.GetBudgets)
+		api.GET("/budgets/summary", budgetHandler.GetBudgetSummary)
+
+		// Dashboard & Report Routes
+		api.GET("/dashboard", dashboardHandler.GetSummary)
+		api.GET("/reports/monthly", reportHandler.GetMonthlyReport)
 	}
 
 	log.Println("Server running on port", cfg.Port)
