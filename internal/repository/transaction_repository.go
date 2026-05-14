@@ -2,6 +2,7 @@ package repository
 
 import (
 	"money-manager/internal/domain"
+	"money-manager/internal/dto"
 
 	"gorm.io/gorm"
 )
@@ -22,10 +23,57 @@ func (r *TransactionRepository) Create(tx *domain.Transaction) error {
 	return r.db.Create(tx).Error
 }
 
-func (r *TransactionRepository) GetByUserID(userID string) ([]domain.Transaction, error) {
+func (r *TransactionRepository) GetByUserID(userID string, query dto.TransactionQuery) ([]domain.Transaction, int64, error) {
 	var txs []domain.Transaction
-	err := r.db.Where("user_id = ?", userID).Order("transaction_date DESC").Find(&txs).Error
-	return txs, err
+	var total int64
+
+	db := r.db.Model(&domain.Transaction{}).Where("user_id = ?", userID)
+
+	// Filters
+	if query.Type != nil {
+		db = db.Where("type = ?", *query.Type)
+	}
+	if query.CategoryID != nil {
+		db = db.Where("category_id = ?", *query.CategoryID)
+	}
+	if query.WalletID != nil {
+		db = db.Where("(source_wallet_id = ? OR destination_wallet_id = ?)", *query.WalletID, *query.WalletID)
+	}
+	if query.Month != nil {
+		db = db.Where("EXTRACT(MONTH FROM transaction_date) = ?", *query.Month)
+	}
+	if query.Year != nil {
+		db = db.Where("EXTRACT(YEAR FROM transaction_date) = ?", *query.Year)
+	}
+	if query.StartDate != nil {
+		db = db.Where("transaction_date >= ?", *query.StartDate)
+	}
+	if query.EndDate != nil {
+		db = db.Where("transaction_date <= ?", *query.EndDate)
+	}
+
+	// Count total before pagination
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Sorting
+	switch query.Sort {
+	case "oldest":
+		db = db.Order("transaction_date ASC")
+	case "highest":
+		db = db.Order("amount DESC")
+	case "lowest":
+		db = db.Order("amount ASC")
+	default: // newest
+		db = db.Order("transaction_date DESC")
+	}
+
+	// Pagination
+	offset := (query.Page - 1) * query.Limit
+	err := db.Limit(query.Limit).Offset(offset).Find(&txs).Error
+
+	return txs, total, err
 }
 
 func (r *TransactionRepository) GetByID(id string, userID string) (*domain.Transaction, error) {

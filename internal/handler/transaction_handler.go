@@ -48,13 +48,20 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 	userID := utils.GetUserID(c)
 
-	res, err := h.service.GetUserTransactions(userID)
+	var query dto.TransactionQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+		return
+	}
+
+	res, total, err := h.service.GetUserTransactions(userID, query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessResponse("transactions retrieved successfully", res))
+	meta := utils.GetPaginationMeta(total, query.Page, query.Limit)
+	c.JSON(http.StatusOK, dto.PaginatedResponse("transactions retrieved successfully", res, meta))
 }
 
 func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {

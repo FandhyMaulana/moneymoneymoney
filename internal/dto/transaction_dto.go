@@ -27,3 +27,17 @@ type TransactionResponse struct {
 	TransactionDate     time.Time `json:"transaction_date"`
 	CreatedAt           time.Time `json:"created_at"`
 }
+
+type TransactionQuery struct {
+	Page                int        `form:"page,default=1"`
+	Limit               int        `form:"limit,default=20"`
+	Type                *string    `form:"type" binding:"omitempty,oneof=income expense transfer"`
+	CategoryID          *string    `form:"category_id"`
+	WalletID            *string    `form:"wallet_id"`
+	Month               *int       `form:"month" binding:"omitempty,min=1,max=12"`
+	Year                *int       `form:"year" binding:"omitempty,min=1900"`
+	StartDate           *time.Time `form:"start_date" time_format:"2006-01-02"`
+	EndDate             *time.Time `form:"end_date" time_format:"2006-01-02"`
+	Sort                string     `form:"sort,default=newest"` // newest, oldest, highest, lowest
+}
+

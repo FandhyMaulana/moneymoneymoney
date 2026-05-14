@@ -145,10 +145,10 @@ func (s *TransactionService) CreateTransaction(userID string, req dto.CreateTran
 	return txResponse, nil
 }
 
-func (s *TransactionService) GetUserTransactions(userID string) ([]dto.TransactionResponse, error) {
-	txs, err := s.repo.GetByUserID(userID)
+func (s *TransactionService) GetUserTransactions(userID string, query dto.TransactionQuery) ([]dto.TransactionResponse, int64, error) {
+	txs, total, err := s.repo.GetByUserID(userID, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var res []dto.TransactionResponse
@@ -168,7 +168,7 @@ func (s *TransactionService) GetUserTransactions(userID string) ([]dto.Transacti
 		})
 	}
 
-	return res, nil
+	return res, total, nil
 }
 
 func (s *TransactionService) DeleteTransaction(id string, userID string) error {
