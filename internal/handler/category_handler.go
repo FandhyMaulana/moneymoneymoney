@@ -40,13 +40,20 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 func (h *CategoryHandler) GetCategories(c *gin.Context) {
 	userID := utils.GetUserID(c)
 
-	res, err := h.service.GetUserCategories(userID)
+	var query dto.PaginationQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+		return
+	}
+
+	res, total, err := h.service.GetUserCategories(userID, query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("internal server error"))
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessResponse("categories retrieved successfully", res))
+	meta := utils.GetPaginationMeta(total, query.Page, query.Limit)
+	c.JSON(http.StatusOK, dto.PaginatedResponse("categories retrieved successfully", res, meta))
 }
 
 func (h *CategoryHandler) DeleteCategory(c *gin.Context) {

@@ -35,10 +35,10 @@ func (s *CategoryService) CreateCategory(userID string, req dto.CreateCategoryRe
 	}, nil
 }
 
-func (s *CategoryService) GetUserCategories(userID string) ([]dto.CategoryResponse, error) {
-	categories, err := s.repo.GetAllByUserID(userID)
+func (s *CategoryService) GetUserCategories(userID string, query dto.PaginationQuery) ([]dto.CategoryResponse, int64, error) {
+	categories, total, err := s.repo.GetAllByUserID(userID, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var res []dto.CategoryResponse
@@ -52,7 +52,7 @@ func (s *CategoryService) GetUserCategories(userID string) ([]dto.CategoryRespon
 		})
 	}
 
-	return res, nil
+	return res, total, nil
 }
 
 func (s *CategoryService) DeleteCategory(id string, userID string) error {

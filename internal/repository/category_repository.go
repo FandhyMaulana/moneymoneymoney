@@ -2,6 +2,7 @@ package repository
 
 import (
 	"money-manager/internal/domain"
+	"money-manager/internal/dto"
 
 	"gorm.io/gorm"
 )
@@ -22,11 +23,21 @@ func (r *CategoryRepository) Create(category *domain.Category) error {
 	return r.db.Create(category).Error
 }
 
-func (r *CategoryRepository) GetAllByUserID(userID string) ([]domain.Category, error) {
+func (r *CategoryRepository) GetAllByUserID(userID string, query dto.PaginationQuery) ([]domain.Category, int64, error) {
 	var categories []domain.Category
+	var total int64
+
 	// Get system categories OR user-specific categories
-	err := r.db.Where("user_id = ? OR is_system = ?", userID, true).Find(&categories).Error
-	return categories, err
+	db := r.db.Model(&domain.Category{}).Where("(user_id = ? OR is_system = ?) AND deleted_at IS NULL", userID, true)
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (query.Page - 1) * query.Limit
+	err := db.Limit(query.Limit).Offset(offset).Find(&categories).Error
+
+	return categories, total, err
 }
 
 func (r *CategoryRepository) GetByID(id string, userID string) (*domain.Category, error) {
