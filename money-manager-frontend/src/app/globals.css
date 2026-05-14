@@ -55,11 +55,11 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03", "tnum";
   }
   html {
     @apply font-sans;
@@ -68,6 +68,10 @@
 }
 
 @layer components {
+  .financial-data {
+    @apply tabular-nums;
+  }
+
   .premium-card {
     @apply rounded-[var(--radius)] border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md;
   }
@@ -82,5 +86,14 @@
 
   .input-premium {
     @apply rounded-[var(--radius-input)] border-input bg-background px-4 py-2 transition-all focus:ring-2 focus:ring-primary/20;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

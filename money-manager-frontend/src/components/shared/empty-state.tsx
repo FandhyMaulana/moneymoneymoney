@@ -1,5 +1,6 @@
 import { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
   title: string;
@@ -9,20 +10,29 @@ interface EmptyStateProps {
     label: string;
     onClick: () => void;
   };
+  className?: string;
 }
 
-export function EmptyState({ title, description, icon: Icon, action }: EmptyStateProps) {
+export function EmptyState({ title, description, icon: Icon, action, className }: EmptyStateProps) {
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center animate-in fade-in zoom-in duration-300">
-      <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
-        <Icon className="size-6 text-muted-foreground" />
+    <div className={cn(
+      "flex min-h-[400px] flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500",
+      className
+    )}>
+      <div className="size-20 rounded-3xl bg-accent/50 flex items-center justify-center mb-6">
+        <Icon className="size-10 text-muted-foreground/50" />
       </div>
-      <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground max-w-xs mx-auto">
-        {description}
-      </p>
+      <div className="space-y-2 mb-8">
+        <h3 className="text-xl font-bold tracking-tight">{title}</h3>
+        <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">
+          {description}
+        </p>
+      </div>
       {action && (
-        <Button onClick={action.onClick} className="mt-6" variant="outline">
+        <Button 
+          onClick={action.onClick} 
+          className="rounded-xl h-11 px-8 shadow-lg shadow-primary/10 active:scale-95 transition-all"
+        >
           {action.label}
         </Button>
       )}

@@ -86,103 +86,104 @@ export function TransactionFilters({ categories, wallets }: TransactionFiltersPr
   };
 
   return (
-    <div className="flex flex-col gap-4 bg-card p-4 rounded-2xl border mb-6 shadow-sm">
-      <div className="flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col gap-6 bg-card p-6 rounded-[var(--radius)] border mb-8 shadow-sm">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative flex-1 group">
+          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             placeholder="Search by note..."
             value={search}
             onChange={onSearchChange}
-            className="pl-9 bg-accent/30 border-none h-10 rounded-xl focus-visible:ring-1"
+            className="pl-10 bg-accent/30 border-none h-11 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
           />
         </div>
 
-        {/* Type Filter */}
-        <Select
-          value={searchParams.get("type") || "all"}
-          onValueChange={(v) => handleFilterChange("type", v)}
-        >
-          <SelectTrigger className="w-full md:w-[160px] bg-accent/30 border-none h-10 rounded-xl">
-            <div className="flex items-center gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:flex gap-4">
+          {/* Type Filter */}
+          <Select
+            value={searchParams.get("type") || "all"}
+            onValueChange={(v) => handleFilterChange("type", v)}
+          >
+            <SelectTrigger className="w-full lg:w-[160px] bg-accent/30 border-none h-11 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all font-medium">
               <SelectValue placeholder="All Types" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="income">
-              <span className="flex items-center gap-2">
-                <ArrowUpCircle className="size-4 text-green-500" />
-                Income
-              </span>
-            </SelectItem>
-            <SelectItem value="expense">
-              <span className="flex items-center gap-2">
-                <ArrowDownCircle className="size-4 text-red-500" />
-                Expense
-              </span>
-            </SelectItem>
-            <SelectItem value="transfer">
-              <span className="flex items-center gap-2">
-                <ArrowRightLeft className="size-4 text-blue-500" />
-                Transfer
-              </span>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* Wallet Filter */}
-        <Select
-          value={searchParams.get("wallet_id") || "all"}
-          onValueChange={(v) => handleFilterChange("wallet_id", v)}
-        >
-          <SelectTrigger className="w-full md:w-[180px] bg-accent/30 border-none h-10 rounded-xl">
-            <div className="flex items-center gap-2">
-              <WalletIcon className="size-4 text-muted-foreground" />
-              <SelectValue placeholder="All Wallets" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Wallets</SelectItem>
-            {wallets.map((w) => (
-              <SelectItem key={w.id} value={w.id}>
-                {w.name}
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-none shadow-2xl">
+              <SelectItem value="all" className="rounded-lg m-1">All Types</SelectItem>
+              <SelectItem value="income" className="rounded-lg m-1">
+                <span className="flex items-center gap-2">
+                  <ArrowUpCircle className="size-4 text-emerald-500" />
+                  Income
+                </span>
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Category Filter */}
-        <Select
-          value={searchParams.get("category_id") || "all"}
-          onValueChange={(v) => handleFilterChange("category_id", v)}
-        >
-          <SelectTrigger className="w-full md:w-[180px] bg-accent/30 border-none h-10 rounded-xl">
-            <div className="flex items-center gap-2">
-              <Tag className="size-4 text-muted-foreground" />
-              <SelectValue placeholder="All Categories" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.name}
+              <SelectItem value="expense" className="rounded-lg m-1">
+                <span className="flex items-center gap-2">
+                  <ArrowDownCircle className="size-4 text-rose-500" />
+                  Expense
+                </span>
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              <SelectItem value="transfer" className="rounded-lg m-1">
+                <span className="flex items-center gap-2">
+                  <ArrowRightLeft className="size-4 text-blue-500" />
+                  Transfer
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
-        {/* Reset */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleReset}
-          className="shrink-0 hover:bg-destructive/10 hover:text-destructive transition-colors rounded-xl"
-        >
-          <FilterX className="size-5" />
-        </Button>
+          {/* Wallet Filter */}
+          <Select
+            value={searchParams.get("wallet_id") || "all"}
+            onValueChange={(v) => handleFilterChange("wallet_id", v)}
+          >
+            <SelectTrigger className="w-full lg:w-[180px] bg-accent/30 border-none h-11 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all font-medium">
+              <div className="flex items-center gap-2">
+                <WalletIcon className="size-4 text-primary/60" />
+                <SelectValue placeholder="All Wallets" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-none shadow-2xl">
+              <SelectItem value="all" className="rounded-lg m-1">All Wallets</SelectItem>
+              {wallets.map((w) => (
+                <SelectItem key={w.id} value={w.id} className="rounded-lg m-1">
+                  {w.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Category Filter */}
+          <Select
+            value={searchParams.get("category_id") || "all"}
+            onValueChange={(v) => handleFilterChange("category_id", v)}
+          >
+            <SelectTrigger className="w-full lg:w-[180px] bg-accent/30 border-none h-11 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all font-medium">
+              <div className="flex items-center gap-2">
+                <Tag className="size-4 text-primary/60" />
+                <SelectValue placeholder="All Categories" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-none shadow-2xl">
+              <SelectItem value="all" className="rounded-lg m-1">All Categories</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.id} className="rounded-lg m-1">
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Reset */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleReset}
+            className="shrink-0 h-11 w-11 hover:bg-destructive/10 hover:text-destructive transition-all rounded-xl"
+            title="Clear all filters"
+          >
+            <FilterX className="size-5" />
+          </Button>
+        </div>
       </div>
     </div>
   );

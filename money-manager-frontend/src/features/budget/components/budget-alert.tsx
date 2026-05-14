@@ -11,19 +11,29 @@ interface BudgetAlertProps {
 export function BudgetAlert({ message, type }: BudgetAlertProps) {
   return (
     <div className={cn(
-      "flex items-center gap-3 p-4 rounded-xl border animate-in fade-in slide-in-from-top-2 duration-300",
+      "flex items-center gap-4 p-5 rounded-[var(--radius)] border-l-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-sm",
       type === 'warning' 
-        ? "bg-amber-500/5 border-amber-500/20 text-amber-700" 
-        : "bg-rose-500/5 border-rose-500/20 text-rose-700"
+        ? "bg-amber-500/5 border-amber-500/50 text-amber-900 dark:text-amber-200" 
+        : "bg-rose-500/5 border-rose-500/50 text-rose-900 dark:text-rose-200"
     )}>
-      {type === 'warning' ? (
-        <AlertTriangle className="h-5 w-5 shrink-0" />
-      ) : (
-        <AlertCircle className="h-5 w-5 shrink-0" />
-      )}
-      <p className="text-sm font-medium leading-relaxed">
-        {message}
-      </p>
+      <div className={cn(
+        "size-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+        type === 'warning' ? "bg-amber-500/10" : "bg-rose-500/10"
+      )}>
+        {type === 'warning' ? (
+          <AlertTriangle className="size-5" />
+        ) : (
+          <AlertCircle className="size-5" />
+        )}
+      </div>
+      <div className="flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-0.5">
+          {type === 'warning' ? 'Budget Warning' : 'Limit Exceeded'}
+        </p>
+        <p className="text-sm font-black tracking-tight leading-none">
+          {message}
+        </p>
+      </div>
     </div>
   );
 }

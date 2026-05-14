@@ -30,6 +30,7 @@ import { Transaction } from "@/types";
 import { TransactionFormData } from "@/types/transaction";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 
 export default function TransactionsPage() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function TransactionsPage() {
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -127,8 +129,13 @@ export default function TransactionsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this transaction? This will also revert your wallet balance.")) {
-      deleteMutation.mutate(id);
+    setDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId);
+      setDeleteId(null);
     }
   };
 
@@ -247,6 +254,15 @@ export default function TransactionsPage() {
             />
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={!!deleteId}
+          onOpenChange={(open) => !open && setDeleteId(null)}
+          title="Delete Transaction"
+          description="Are you sure you want to delete this transaction? This action cannot be undone and will revert your wallet balance."
+          onConfirm={confirmDelete}
+          isLoading={deleteMutation.isPending}
+        />
       </div>
     </PageContainer>
   );

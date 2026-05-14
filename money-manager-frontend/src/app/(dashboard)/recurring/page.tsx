@@ -10,6 +10,7 @@ import { RecurringCard } from "@/features/recurring/components/recurring-card";
 import { RecurringSkeleton } from "@/features/recurring/components/recurring-skeleton";
 import { RecurringForm } from "@/features/recurring/components/recurring-form";
 import { EmptyRecurringState } from "@/features/recurring/components/empty-recurring-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Pagination } from "@/components/shared/pagination";
 import { 
   Dialog, 
@@ -33,6 +34,7 @@ export default function RecurringPage() {
   const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRecurring, setEditingRecurring] = useState<RecurringTransaction | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Queries
   const { data: recurringResponse, isLoading, isError } = useQuery({
@@ -182,7 +184,7 @@ export default function RecurringPage() {
                   wallet={wallets.find(w => w.id === recurring.wallet_id)}
                   category={categories.find(c => c.id === recurring.category_id)}
                   onEdit={handleEdit}
-                  onDelete={(id) => deleteMutation.mutate(id)}
+                  onDelete={setDeleteId}
                   onToggleStatus={handleToggleStatus}
                 />
               ))}
@@ -198,6 +200,20 @@ export default function RecurringPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Delete Automation"
+        description="Are you sure you want to delete this recurring automation? This will stop all future transactions from being created automatically."
+        onConfirm={() => {
+          if (deleteId) {
+            deleteMutation.mutate(deleteId);
+            setDeleteId(null);
+          }
+        }}
+        isLoading={deleteMutation.isPending}
+      />
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-[600px] rounded-3xl border-none shadow-2xl overflow-hidden p-0">

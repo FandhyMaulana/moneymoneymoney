@@ -10,6 +10,7 @@ interface AnalyticsChartCardProps {
   children: ReactNode;
   className?: string;
   rightElement?: ReactNode;
+  height?: string;
 }
 
 export function AnalyticsChartCard({
@@ -18,6 +19,7 @@ export function AnalyticsChartCard({
   children,
   className,
   rightElement,
+  height = "h-[350px]",
 }: AnalyticsChartCardProps) {
   return (
     <Card className={cn("p-6 flex flex-col gap-6", className)}>
@@ -34,7 +36,7 @@ export function AnalyticsChartCard({
         </div>
         {rightElement}
       </div>
-      <div className="flex-1 min-h-[300px] w-full">
+      <div className={cn("w-full", height)}>
         {children}
       </div>
     </Card>

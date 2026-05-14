@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { formatCurrency, formatPercent } from "@/utils/format";
+import { formatCurrency, formatPercentage } from "@/utils/format";
 import { PiggyBank } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,24 +16,27 @@ export function SavingsSummary({ income, expense, savings }: SavingsSummaryProps
   const isPositive = savings >= 0;
 
   return (
-    <Card className="p-6 overflow-hidden relative group border-none bg-emerald-500/5">
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold text-emerald-600/60 uppercase tracking-wider">Net Savings</span>
+    <Card className="p-8 overflow-hidden relative group border-none bg-emerald-500/5 shadow-inner">
+      <div className="flex flex-col gap-3 relative z-10">
+        <div className="flex items-center gap-2">
+          <PiggyBank className="size-4 text-emerald-600" />
+          <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest opacity-70">Monthly Savings Efficiency</span>
+        </div>
         <h3 className={cn(
-          "text-2xl font-bold",
+          "text-4xl font-black tracking-tighter financial-data",
           isPositive ? "text-emerald-600" : "text-rose-600"
         )}>
           {formatCurrency(savings)}
         </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Your savings rate this month is <span className="font-semibold text-emerald-600">{formatPercent(savingsRate)}</span>. 
+        <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
+          Your savings efficiency this month is <span className="font-black text-emerald-600 financial-data">{formatPercentage(savingsRate)}</span>. 
           {isPositive 
-            ? " Great job! You are living within your means." 
-            : " You spent more than you earned this month."}
+            ? " Excellent financial discipline! You're building wealth effectively." 
+            : " You've utilized your reserves this month. Consider reviewing your variable expenses."}
         </p>
       </div>
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <PiggyBank className="size-24 text-emerald-600" />
+      <div className="absolute -bottom-6 -right-6 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-700 active:scale-95">
+        <PiggyBank className="size-48 text-emerald-600" />
       </div>
     </Card>
   );
